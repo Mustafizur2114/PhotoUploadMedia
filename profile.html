@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | Public Share</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <h2 class="logo" onclick="window.location.href='dashboard.html'" style="cursor:pointer;">Public Share</h2>
+        </div>
+        <div class="nav-right">
+            <button class="nav-icon jump" onclick="window.location.href='dashboard.html'"><i class="fa fa-home"></i></button>
+            <button class="nav-icon jump" id="menuToggle"><i class="fa fa-bars"></i></button>
+        </div>
+    </nav>
+
+    <section class="profile-header">
+        <div class="profile-info">
+            <div class="profile-pic">
+                <i class="fa fa-user-circle"></i>
+            </div>
+            <div class="profile-details">
+                <h1 id="displayUsername">Loading...</h1>
+                <p id="userEmailDisplay">email@example.com</p>
+                <button class="edit-btn jump" onclick="window.location.href='settings.html'">Edit Profile</button>
+            </div>
+        </div>
+    </section>
+
+    <hr class="profile-divider">
+
+    <main class="gallery-container">
+        <h3><i class="fa fa-th"></i> My Gallery</h3>
+        <div id="userGallery" class="gallery-grid">
+            <p class="empty-msg">You haven't uploaded any photos yet.</p>
+        </div>
+    </main>
+
+    <script type="module" src="profile.js"></script>
+</body>
+</html>

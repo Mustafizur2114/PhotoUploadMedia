@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | Public Share</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .auth-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            width: 400px;
+            text-align: center;
+            color: white;
+        }
+        .auth-container input {
+            width: 90%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            outline: none;
+        }
+        .signup-btn {
+            width: 95%;
+            padding: 12px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(to right, #3a7bd5, #00d2ff);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-image">
+
+    <div class="auth-container">
+        <h2>Join Public Share</h2>
+        <p>Create your secure account</p>
+        
+        <input type="text" id="userName" placeholder="Full Name" required>
+        <input type="email" id="userEmail" placeholder="Email Address" required>
+        <input type="password" id="userPass" placeholder="Password" required>
+        <input type="password" id="confirmPass" placeholder="Confirm Password" required>
+        
+        <button class="signup-btn jump" id="createAccBtn">Create Account</button>
+        
+        <p style="margin-top: 15px; font-size: 0.9rem;">
+            Already have an account? <a href="auth.html" style="color: #00d2ff;">Login here</a>
+        </p>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

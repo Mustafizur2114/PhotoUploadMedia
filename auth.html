@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Sign Up | Public Share</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Specific styles for the Auth Page transparency */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .auth-container {
+            background: rgba(255, 255, 255, 0.1); /* Low opacity for transparency */
+            backdrop-filter: blur(15px); /* Blurs the background behind the box */
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            width: 380px;
+            text-align: center;
+            color: white;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .auth-container h2 {
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        .auth-container input {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            outline: none;
+        }
+
+        .auth-container input::placeholder {
+            color: #ddd;
+        }
+
+        .auth-btn {
+            width: 95%;
+            padding: 12px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 8px;
+            background: #00d2ff;
+            background: linear-gradient(to right, #3a7bd5, #00d2ff);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .google-btn {
+            background: white;
+            color: #444;
+            margin-top: 10px;
+        }
+
+        .forgot-pass {
+            display: block;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #eee;
+            text-decoration: none;
+        }
+
+        .forgot-pass:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-image">
+
+    <div class="auth-container">
+        <h2>Public Share</h2>
+        
+        <div id="auth-form">
+            <input type="email" id="loginEmail" placeholder="Email Address" required>
+            <input type="password" id="loginPassword" placeholder="Password" required>
+            
+            <button class="auth-btn jump" id="loginBtn">Login</button>
+            <button class="auth-btn jump google-btn" id="googleBtn">Continue with Google</button>
+            
+            <a href="#" class="forgot-pass" id="forgotBtn">Forgot Password?</a>
+            
+            <p style="margin-top: 20px; font-size: 0.9rem;">
+                New here?
+                <a href="signup.html" id="toggleSignUpLink" style="color: #00d2ff;">Create an Account</a>
+            </p>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
