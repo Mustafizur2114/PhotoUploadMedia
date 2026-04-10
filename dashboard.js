@@ -1,7 +1,9 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-// Update this line specifically to include 'ref'
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-storage.js";
+// 1. Import all necessary Firebase and Firestore functions
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// 2. Your Firebase Configuration (Paste your actual config here)
 const firebaseConfig = {
   apiKey: "AIzaSyBMKbwtnMliER7lGNbksSMHj5SIv_vE5xk",
   authDomain: "public-gallery-4d0f0.firebaseapp.com",
@@ -11,15 +13,62 @@ const firebaseConfig = {
   messagingSenderId: "392227239650",
   appId: "1:392227239650:web:40cc1d3b0fd7fffcec10bb"
 };
-
-// 2. INITIALIZE FIREBASE FIRST (This solves the error)
+// 3. Initialize Firebase FIRST (This creates the 'app' variable)
 const app = initializeApp(firebaseConfig);
 
-// 3. Now you can safely call these
+// 4. Initialize Auth and Firestore AFTER the app is ready
 const auth = getAuth(app);
-const storage = getStorage(app);
+const db = getFirestore(app);
 
-console.log("Firebase initialized successfully!");
+// Replace your old Firebase Storage logic with this Cloudinary Widget
+const cloudName = "dwam61eqb"; // Replace with your Cloud Name
+const uploadPreset = "public_share"; // Replace with your Unsigned Preset
+
+const myWidget = cloudinary.createUploadWidget(
+  {
+    cloudName: "dwam61eqb",
+    uploadPreset: "public_share",
+    sources: ["local", "url", "camera"], // Allows uploads from computer or camera
+    multiple: false,
+    cropping: true, // Professional touch: allows users to crop photos
+    styles: {
+        palette: {
+            window: "#000000",
+            sourceBg: "#000000",
+            windowBorder: "#333333",
+            tabIcon: "#FFFFFF",
+            inactiveTabIcon: "#8E8E8E",
+            menuIcons: "#FFFFFF",
+            link: "#00d2ff",
+            action: "#336BFF",
+            inProgress: "#00BFFF",
+            complete: "#33ff00",
+            error: "#EA2727",
+            textDark: "#000000",
+            textLight: "#FFFFFF"
+        }
+    }
+  },
+  (error, result) => {
+    if (!error && result && result.event === "success") {
+        const sharedUrl = result.info.secure_url
+      console.log("Done!Image link: ", sharedUrl);
+      
+
+      savePostToDatabase(sharedUrl); // Save the post to your database with the image URL
+      
+     if (typeof createPost === "function") {
+      createPost(sharedUrl, "You"); 
+      
+      alert("Successfully uploaded to Cloudinary!");
+    }
+    }
+  }
+);
+
+document.getElementById("upload_widget").addEventListener("click", () => {
+    myWidget.open();
+}, false);
 
 // Toggle Menu Visibility
 const menuToggle = document.getElementById('menuToggle');
@@ -47,30 +96,20 @@ document.getElementById('aboutBtn').addEventListener('click', () => {
 });
 
 // Upload Trigger (Redirects to file selection)
-const fileUpload = document.getElementById('file-upload');
+const uploadBtn = document.getElementById('upload_widget'); 
 
-fileUpload.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    const user = auth.currentUser;
 
-    if (!file) return;
-    if (!user) {
-        alert("Please login first to upload photos!");
-        return;
-    }
-    // 1. Create a reference in Firebase Storage
-    // This creates a folder named 'uploads', then a folder with the User's ID
-    const storageRef = ref(storage, `uploads/${user.uid}/${Date.now()}-${file.name}`);
+if (uploadBtn) {
+    uploadBtn.addEventListener('click', () => {
+        myWidget.open(); // This opens the Cloudinary window
+    }, false);
+}
+    
 
     try {
         console.log("Upload started...");
         
-        // 2. Perform the actual upload
-        const snapshot = await uploadBytes(storageRef, file);
         
-        // 3. Get the URL of the uploaded image to display it
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        createPost(downloadURL, user.displayName || "Anonymous");
 
         
         alert("Upload Successful! Your photo is now live.");
@@ -81,10 +120,9 @@ fileUpload.addEventListener('change', async (e) => {
         location.reload(); 
 
     } catch (error) {
-        console.error("Upload failed:", error);
-        alert("Upload failed: " + error.message);
+
     }
-});
+;
 
 // Logout
 document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -93,8 +131,17 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 });
 const mediaFeed = document.getElementById('mediaFeed');
 
-// Function to create a post element
+// dashboard.js
+
 function createPost(url, username) {
+    // 1. Re-grab the element inside the function to be 100% sure it's there
+    const mediaFeed = document.getElementById('mediaFeed');
+
+    if (!mediaFeed) {
+        console.error("Error: Could not find the 'mediaFeed' div in your HTML!");
+        return;
+    }
+
     const postHTML = `
         <div class="post-card">
             <div class="post-header">
@@ -106,9 +153,34 @@ function createPost(url, username) {
             <div class="post-footer">
                 <button class="action-btn"><i class="fa fa-heart"></i> Like</button>
                 <button class="action-btn"><i class="fa fa-comment"></i> Comment</button>
-                <a href="${url}" download class="action-btn"><i class="fa fa-download"></i></a>
             </div>
         </div>
     `;
-    mediaFeed.innerHTML += postHTML;
+
+    // 2. This is line 132 - it will now work safely
+    mediaFeed.innerHTML = postHTML + mediaFeed.innerHTML;
 }
+async function savePostToDatabase(url) {
+    try {
+        await addDoc(collection(db, "posts"), {
+            imageUrl: url,
+            username: auth.currentUser.displayName || "Anonymous",
+            timestamp: serverTimestamp()
+        });
+        console.log("Post saved to Firestore!");
+    } catch (e) {
+        console.error("Error adding document: ", e);
+    }
+}
+const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+
+onSnapshot(q, (snapshot) => {
+    const mediaFeed = document.getElementById('mediaFeed');
+    if (!mediaFeed) return;
+    
+    mediaFeed.innerHTML = ""; // Clear the feed before reloading
+    snapshot.forEach((doc) => {
+        const post = doc.data();
+        createPost(post.imageUrl, post.username);
+    });
+});
