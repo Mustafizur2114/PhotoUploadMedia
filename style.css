@@ -395,6 +395,7 @@ html, body {
     display: flex;
     align-items: center;
     max-width: 300px;
+    position: relative;
 }
 
 .search-box input {
@@ -404,6 +405,32 @@ html, body {
     margin-left: 10px;
     outline: none;
     width: 100%;
+}
+
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.search-item {
+    padding: 10px 15px;
+    color: white;
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+    transition: background 0.3s;
+}
+
+.search-item:hover {
+    background: #222;
 }
 
 .nav-icon {

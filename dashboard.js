@@ -83,12 +83,217 @@ window.onclick = (event) => {
     if (!event.target.matches('#menuToggle') && !event.target.matches('.fa-bars')) {
         dropdownMenu.style.display = 'none';
     }
+    // Close search results when clicking outside
+    const searchResults = document.getElementById('searchResults');
+    if (searchResults && !event.target.matches('#friendSearch') && !event.target.closest('.search-results')) {
+        searchResults.style.display = 'none';
+    }
+}
+
+// Search functionality
+const friendSearch = document.getElementById('friendSearch');
+const searchResults = document.getElementById('searchResults');
+
+if (friendSearch) {
+    friendSearch.addEventListener('input', async (e) => {
+        const searchTerm = e.target.value.trim().toLowerCase();
+        
+        if (searchTerm.length === 0) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        try {
+            // Get all users and filter client-side
+            const usersRef = collection(db, "users");
+            const querySnapshot = await getDocs(usersRef);
+            
+            searchResults.innerHTML = '';
+            let found = false;
+            
+            querySnapshot.forEach((docSnapshot) => {
+                const userData = docSnapshot.data();
+                const userId = docSnapshot.id;
+                const username = userData.username || '';
+                const displayName = userData.displayName || '';
+                const email = userData.email || '';
+                
+                // Check if username, displayName, or email contains search term
+                if (username.toLowerCase().includes(searchTerm) || 
+                    displayName.toLowerCase().includes(searchTerm) ||
+                    email.toLowerCase().includes(searchTerm)) {
+                    
+                    found = true;
+                    const searchItem = document.createElement('div');
+                    searchItem.className = 'search-item';
+                    searchItem.style.cssText = 'padding: 10px; cursor: pointer; border-bottom: 1px solid #333; transition: background 0.3s;';
+                    
+                    const displayUsername = username || displayName || email || 'Unknown User';
+                    searchItem.innerText = '@' + displayUsername;
+                    searchItem.onclick = () => viewUserProfile(userId, displayUsername);
+                    searchItem.onmouseover = () => searchItem.style.background = '#222';
+                    searchItem.onmouseout = () => searchItem.style.background = 'transparent';
+                    
+                    searchResults.appendChild(searchItem);
+                }
+            });
+            
+            if (!found) {
+                searchResults.innerHTML = '<div class="search-item">No users found</div>';
+            }
+            
+            searchResults.style.display = 'block';
+        } catch (error) {
+            console.error("Search error:", error);
+            searchResults.innerHTML = '<div class="search-item">Error searching users</div>';
+            searchResults.style.display = 'block';
+        }
+    });
 }
 
 // Contact Us Info
 document.getElementById('contactBtn').addEventListener('click', () => {
     alert("Contact Us:\nEmail: rmustafizur854@gmail.com\nPhone: +91 9864321809");
 });
+
+// View User Profile
+async function viewUserProfile(userId, username) {
+    // Close search results
+    document.getElementById('searchResults').style.display = 'none';
+    document.getElementById('friendSearch').value = '';
+    
+    // Create profile modal
+    const modal = document.createElement('div');
+    modal.id = 'userProfileModal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: #1a1a1a;
+        color: white;
+        border-radius: 12px;
+        padding: 30px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        border: 1px solid #333;
+    `;
+    
+    // Loading state
+    modalContent.innerHTML = '<p style="text-align: center; color: #888;">Loading profile...</p>';
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    try {
+        // Fetch user data
+        const userDoc = await getDoc(doc(db, "users", userId));
+        const userEmail = userDoc.data()?.email || 'N/A';
+        
+        // Fetch user's posts
+        const postsQuery = query(collection(db, "posts"), where("userId", "==", userId), orderBy("timestamp", "desc"));
+        const postsSnapshot = await getDocs(postsQuery);
+        
+        // Build modal content
+        let profileHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 48px; margin-bottom: 10px;"><i class="fa fa-user-circle"></i></div>
+                <h2 style="margin: 10px 0;">@${username}</h2>
+                <p style="color: #aaa; margin: 5px 0;">Email: ${userEmail}</p>
+            </div>
+            <hr style="border-color: #333; margin: 20px 0;">
+            <h3 style="margin-bottom: 15px;"><i class="fa fa-th"></i> Gallery</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+        `;
+        
+        if (postsSnapshot.empty) {
+            profileHTML += '<p style="grid-column: 1 / -1; text-align: center; color: #888;">No photos uploaded yet</p>';
+        } else {
+            postsSnapshot.forEach((postDoc) => {
+                const post = postDoc.data();
+                profileHTML += `
+                    <img src="${post.imageUrl}" alt="Photo" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; cursor: pointer;" onclick="viewFullImage('${post.imageUrl}')">
+                `;
+            });
+        }
+        
+        profileHTML += `
+            </div>
+            <button onclick="closeUserProfile()" style="
+                width: 100%;
+                padding: 12px;
+                margin-top: 20px;
+                background: #ff4d4d;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 16px;
+            ">Close</button>
+        `;
+        
+        modalContent.innerHTML = profileHTML;
+        
+    } catch (error) {
+        console.error("Error loading profile:", error);
+        modalContent.innerHTML = '<p style="color: #ff4d4d;">Error loading profile. Please try again.</p>';
+    }
+}
+
+// Close user profile modal
+function closeUserProfile() {
+    const modal = document.getElementById('userProfileModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// View full image
+function viewFullImage(imageUrl) {
+    const imageModal = document.createElement('div');
+    imageModal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1001;
+        cursor: pointer;
+    `;
+    
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.style.cssText = `
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 8px;
+    `;
+    
+    imageModal.appendChild(img);
+    imageModal.onclick = () => imageModal.remove();
+    document.body.appendChild(imageModal);
+}
+
+// Make functions globally accessible
+window.viewUserProfile = viewUserProfile;
+window.closeUserProfile = closeUserProfile;
+window.viewFullImage = viewFullImage;
 
 // About Us Info
 document.getElementById('aboutBtn').addEventListener('click', () => {
@@ -231,16 +436,147 @@ async function toggleLike(postId, hasLiked) {
 window.toggleLike = toggleLike;
 
 // Comment Modal
-function openCommentModal(postId, username) {
+async function openCommentModal(postId, username) {
     const currentUserId = auth.currentUser?.uid;
     if (!currentUserId) {
         alert('Please login to comment');
         return;
     }
 
-    const commentText = prompt(`Comment on @${username}'s post:`);
-    if (commentText && commentText.trim()) {
-        addComment(postId, commentText);
+    try {
+        // Get post data with comments
+        const postSnap = await getDoc(doc(db, "posts", postId));
+        if (!postSnap.exists()) {
+            alert("Post not found!");
+            return;
+        }
+        
+        const postData = postSnap.data();
+        const comments = postData.comments || [];
+        
+        // Create modal
+        const modal = document.createElement('div');
+        modal.id = 'commentsModal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        `;
+        
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+            background: #1a1a1a;
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        `;
+        
+        let html = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Comments on @${username}'s post</h3>
+                <button onclick="closeCommentModal()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">&times;</button>
+            </div>
+            <hr style="border-color: #333; margin-bottom: 15px;">
+        `;
+        
+        if (comments.length === 0) {
+            html += '<p style="text-align: center; color: #888;">No comments yet. Be the first to comment!</p>';
+        } else {
+            html += '<div style="margin-bottom: 15px;">';
+            comments.forEach((comment) => {
+                const date = new Date(comment.timestamp);
+                const timeStr = date.toLocaleString();
+                html += `
+                    <div style="background: #222; padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 3px solid #00d2ff;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="font-weight: bold; color: #00d2ff;">@${comment.username}</span>
+                            <span style="font-size: 12px; color: #888;">${timeStr}</span>
+                        </div>
+                        <p style="margin: 0; color: #aaa; word-wrap: break-word;">${escapeHtml(comment.text)}</p>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        }
+        
+        html += `
+            <hr style="border-color: #333; margin: 15px 0;">
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="commentInput" placeholder="Write a comment..." style="
+                    flex: 1;
+                    background: #222;
+                    border: 1px solid #333;
+                    color: white;
+                    padding: 10px;
+                    border-radius: 6px;
+                    outline: none;
+                " />
+                <button onclick="submitComment('${postId}')" style="
+                    background: #00d2ff;
+                    color: black;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: bold;
+                ">Post</button>
+            </div>
+        `;
+        
+        modalContent.innerHTML = html;
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+        
+        // Focus on input
+        document.getElementById('commentInput').focus();
+        
+    } catch (error) {
+        console.error("Error opening comment modal:", error);
+        alert("Failed to load comments. Please try again.");
+    }
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Submit comment from modal
+async function submitComment(postId) {
+    const commentInput = document.getElementById('commentInput');
+    const commentText = commentInput.value.trim();
+    
+    if (!commentText) {
+        alert('Please write a comment');
+        return;
+    }
+    
+    await addComment(postId, commentText);
+    
+    // Refresh modal
+    closeCommentModal();
+    openCommentModal(postId, 'User');
+}
+
+// Close comment modal
+function closeCommentModal() {
+    const modal = document.getElementById('commentsModal');
+    if (modal) {
+        modal.remove();
     }
 }
 
@@ -290,6 +626,9 @@ async function addComment(postId, commentText) {
 }
 
 window.openCommentModal = openCommentModal;
+window.submitComment = submitComment;
+window.closeCommentModal = closeCommentModal;
+window.escapeHtml = escapeHtml;
 
 // Delete Account Function
 async function deleteAccount() {

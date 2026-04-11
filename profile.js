@@ -28,13 +28,6 @@ if (menuToggle) {
     });
 }
 
-// Close menu when clicking outside
-window.onclick = (event) => {
-    if (dropdownMenu && !event.target.matches('#menuToggle') && !event.target.matches('.fa-bars')) {
-        dropdownMenu.style.display = 'none';
-    }
-};
-
 // Delete account button
 const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 if (deleteAccountBtn) {
@@ -128,6 +121,11 @@ window.onclick = (event) => {
     const modal = document.getElementById('photoModal');
     if (event.target === modal) {
         closePhotoModal();
+    }
+    
+    // Close menu when clicking outside
+    if (dropdownMenu && !event.target.matches('#menuToggle') && !event.target.matches('.fa-bars')) {
+        dropdownMenu.style.display = 'none';
     }
 };
 
