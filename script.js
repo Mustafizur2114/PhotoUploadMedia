@@ -1,6 +1,7 @@
 // Import Firebase SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
 
 const firebaseConfig = {
@@ -14,15 +15,34 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
 
 
 // Google Sign In Function
-export const googleSignIn = () => {
-    signInWithPopup(auth, provider).then(() => {
+export const googleSignIn = async () => {
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        
+        // Create or update user document in Firestore
+        try {
+            await setDoc(doc(db, "users", user.uid), {
+                username: user.displayName || "Google User",
+                email: user.email,
+                uid: user.uid,
+                photo: user.photoURL || null
+            }, { merge: true });
+        } catch (firestoreError) {
+            console.error("Error creating user document:", firestoreError);
+        }
+        
         window.location.href = "dashboard.html";
-    });
+    } catch (error) {
+        console.error("Google Sign In Error:", error);
+        alert("Google Sign In failed. Please try again.");
+    }
 };
 
 // Reset Password (Forgot Password)
@@ -54,14 +74,27 @@ if (createAccBtn) {
 
         // 2. Create User in Firebase
         createUserWithEmailAndPassword(auth, email, pass)
-            .then((userCredential) => {
+            .then(async (userCredential) => {
                 // 3. Update the profile with the Name provided
-                updateProfile(userCredential.user, {
+                await updateProfile(userCredential.user, {
                     displayName: name
-                }).then(() => {
+                });
+                
+                // 4. Create a user document in Firestore
+                try {
+                    await setDoc(doc(db, "users", userCredential.user.uid), {
+                        username: name,
+                        email: email,
+                        uid: userCredential.user.uid,
+                        createdAt: new Date().toISOString()
+                    });
                     alert("Account Created Successfully!");
                     window.location.href = "dashboard.html";
-                });
+                } catch (firestoreError) {
+                    console.error("Error creating user document:", firestoreError);
+                    alert("Account created but profile setup failed. Please try editing your profile.");
+                    window.location.href = "dashboard.html";
+                }
             })
             .catch((error) => {
                 alert(error.message);

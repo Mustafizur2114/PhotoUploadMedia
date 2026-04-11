@@ -11,32 +11,33 @@
 <body class="dashboard-body">
 
     <nav class="navbar">
-        <div class="nav-content">
+        <div class="nav-left">
             <h2 class="logo">Public Share</h2>
         </div>
         
+        <div class="nav-center">
             <div class="search-box">
                 <i class="fa fa-search"></i>
                 <input type="text" id="friendSearch" placeholder="Search friends ID...">
             </div>
         </div>
 
-        <div class="nav-icons">
-              <i class="nav-icon jump" title="Home"><i class="fa fa-home"></i></button>
+        <div class="nav-right">
+            <button class="nav-icon jump" onclick="window.location.href='dashboard.html'" title="Home"><i class="fa fa-home"></i></button>
             
             <button class="nav-icon jump" id="upload_widget" title="Upload Media">
-    <i class="fa fa-plus-square"></i>
-</button>
+                <i class="fa fa-plus-square"></i>
+            </button>
 
             <div class="menu-container">
                 <button class="nav-icon jump" id="menuToggle"><i class="fa fa-bars"></i></button>
                 <div class="dropdown-menu" id="dropdownMenu">
                     <a href="profile.html"><i class="fa fa-user"></i> My Profile</a>
-
                     <a href="#" id="aboutBtn"><i class="fa fa-info-circle"></i> About Us</a>
                     <a href="#" id="contactBtn"><i class="fa fa-envelope"></i> Contact Us</a>
                     <a href="#" id="settingsBtn"><i class="fa fa-cog"></i> Settings</a>
                     <hr>
+                    <a href="#" id="deleteAccountBtn" style="color: #ff9800;"><i class="fa fa-trash"></i> Delete Account</a>
                     <a href="#" id="logoutBtn" style="color: #ff4d4d;"><i class="fa fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>

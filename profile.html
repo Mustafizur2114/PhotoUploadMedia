@@ -15,7 +15,16 @@
         </div>
         <div class="nav-right">
             <button class="nav-icon jump" onclick="window.location.href='dashboard.html'"><i class="fa fa-home"></i></button>
-            <button class="nav-icon jump" id="menuToggle"><i class="fa fa-bars"></i></button>
+            <div class="menu-container">
+                <button class="nav-icon jump" id="menuToggle"><i class="fa fa-bars"></i></button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <a href="profile.html"><i class="fa fa-user"></i> My Profile</a>
+                    <a href="settings.html"><i class="fa fa-cog"></i> Settings</a>
+                    <hr>
+                    <a href="#" id="deleteAccountBtn" style="color: #ff9800;"><i class="fa fa-trash"></i> Delete Account</a>
+                    <a href="index.html" style="color: #ff4d4d;"><i class="fa fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -40,6 +49,14 @@
             <p class="empty-msg">You haven't uploaded any photos yet.</p>
         </div>
     </main>
+
+    <!-- Photo Modal -->
+    <div id="photoModal" class="photo-modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closePhotoModal()">&times;</span>
+            <img id="modalImage" src="" alt="Full Photo">
+        </div>
+    </div>
 
     <script type="module" src="profile.js"></script>
 </body>
